@@ -1,0 +1,320 @@
+import * as createReactApp from "https://cdn.skypack.dev/create-react-app";
+
+const nameList: Array<string> = [
+  "Abbey",
+  "Airfield",
+  "Berlin",
+  "Cliff",
+  "Crater",
+  "Dragon Ridge",
+  "El Halluf",
+  "Empires Border",
+  "Erlenberg",
+  "Fiery Salient",
+  "Fishermans Bay",
+  "Fjords",
+  "Ghost Town",
+  "Glacier",
+  "Hidden Village",
+  "Highway",
+  "Himmelsdorf",
+  "Hinterland",
+  "Icebound",
+  "Karelia",
+  "Kharkov",
+  "Klondike",
+  "Komarin",
+  "Kraftwerk",
+  "Lakeville",
+  "Lev Yashin Stadium",
+  "Live Oaks",
+  "Lost Stadium",
+  "Malinovka",
+  "Mannerheim Line",
+  "Mines",
+  "Minsk",
+  "Mittengard",
+  "Mountain Pass",
+  "Murovanka",
+  "Nebelburg",
+  "Normandy",
+  "Northwest",
+  "Overlord",
+  "Paris",
+  "Pearl River",
+  "Pilsen",
+  "Prokhorovka",
+  "Province",
+  "Redshire",
+  "Ruinberg",
+  "Sacred Valley",
+  "Sand River",
+  "Serene Coast",
+  "Severogorsk",
+  "Siegfried Line",
+  "South Coast",
+  "Stalingrad",
+  "Steppes",
+  "Studzianki",
+  "Swamp",
+  "Tundra",
+  "Westfield",
+  "Widepark",
+  "Windstorm",
+  "Winterberg"
+];
+const lettersList: Array<string> = [
+  "Q",
+  "W",
+  "E",
+  "R",
+  "T",
+  "Y",
+  "U",
+  "I",
+  "O",
+  "P",
+  "A",
+  "S",
+  "D",
+  "F",
+  "G",
+  "H",
+  "J",
+  "K",
+  "L",
+  "Z",
+  "X",
+  "C",
+  "V",
+  "B",
+  "N",
+  "M"
+];
+
+let isGameRunning: boolean = false;
+let nameIndex: number = parseInt(Math.random() * nameList.length);
+let selectedName: string = nameList[nameIndex].toUpperCase();
+let mysteryName: string = selectedName.replace(/([a-zA-Z])/gi, "_");
+let guessedLetters: {} = {
+  good: {},
+  bad: {}
+};
+
+function startGame() {
+  console.log(" start game ");
+  // isGameRunning = false;
+  nameIndex = parseInt(Math.random() * nameList.length);
+  selectedName = nameList[nameIndex].toUpperCase();
+  mysteryName = selectedName.replace(/([a-zA-Z])/gi, "_");
+  guessedLetters = {
+    good: {},
+    bad: {}
+  };
+}
+
+function lettersCheck(l: {}, e: {}): string {
+  let letter = l.thatKey.toUpperCase();
+  console.log(
+    "letters check l :",
+    l,
+    " ??? ",
+    l.thatSetter,
+    "\nguessedLetters",
+    guessedLetters.good[letter],
+    "\nguessedLetters.bad[letter]",
+    guessedLetters.bad[letter],
+    "\nguessedLetters.good[letter] != undefined",
+    guessedLetters.good[letter] != undefined,
+    "\nguessedLetters.bad[letter] != undefined",
+    guessedLetters.bad[letter] != undefined
+  );
+  if (
+    guessedLetters.bad[letter] != undefined ||
+    guessedLetters.good[letter] != undefined
+  )
+    return null;
+  let letterIndex = selectedName.indexOf(letter);
+  console.log(
+    " found letter ",
+    letter,
+    "\n event :",
+    e.target,
+    "\n @index :",
+    letterIndex
+  );
+  if (letterIndex == -1) {
+    guessedLetters.bad[letter] = false;
+    e.target.className = "wrong button keyboard_button";
+    l.thatSetter.setKeyboardState(letter);
+  } else {
+    guessedLetters.good[letter] = true;
+    replaceLetter(l.thatKey);
+    e.target.className = "right button keyboard_button";
+    l.thatSetter.settingText(mysteryName);
+  }
+}
+
+function replaceLetter(letter: string): string {
+  console.log(" replace letter ? ", letter, " selected name ", selectedName);
+  let i = -1;
+  let leng = selectedName.length;
+  while (++i < leng) {
+    console.log(" i ", i);
+    if (selectedName[i] == letter) {
+      console.log(" mystery name ", mysteryName);
+      mysteryName =
+        mysteryName.substring(0, i) + letter + mysteryName.substring(i + 1);
+    }
+  }
+}
+
+function KeyboardButtons(k) {
+  // console.log(
+  //   " keyboard buttons called ? \nk :",
+  //   k.thatKey,
+  //   "\n s :",
+  //   k.thatSetter.settingText
+  // );
+  return (
+    <div
+      className="clickableBtn button keyboard_button"
+      onClick={(event) => {
+        console.log(" keyboardbuttons ", k.thatKey);
+        lettersCheck(k, event);
+      }}
+    >
+      {k.thatKey}
+    </div>
+  );
+}
+
+function KeyboardScreen(p) {
+  console.log(" keyboard screen called ", p);
+  if (isGameRunning) {
+    // p.setKeyboardState(true);
+    return (
+      <div>
+        <div id="keyboard">
+          {lettersList.map((key) => (
+            <KeyboardButtons key={key} thatKey={key} thatSetter={p} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+}
+
+function HealthScreen(p) {
+  let maxHealth = 10;
+  let tries = maxHealth - Object.keys(guessedLetters.bad).length;
+  console.log(
+    " health screen isGameRunning ",
+    isGameRunning,
+    "\np.keyboardState;",
+    p.keyboardState
+  );
+
+  // if (p.keyboardState) {
+  //   p.setKeyboardState(false);
+  // }
+  // if (isGameRunning) {
+  if (!tries) {
+    isGameRunning = false;
+    React.useEffect(() => {
+      p.setHealthState("dead");
+    });
+    return <div className="intro_text dead_red">You Died !</div>;
+  } else if (mysteryName.indexOf("_") == -1) {
+    isGameRunning = false;
+    React.useEffect(() => {
+      p.setHealthState("alive_n_won");
+      console.log(
+        " health \n what is if mystery is -1 \n is game running ?",
+        isGameRunning
+      );
+    });
+    return (
+      <div className="intro_text dead_red"> Y(^_^)y You Won \(^o^)/ !</div>
+    );
+  } else if (isGameRunning) {
+    console.log(" health , else case ");
+    return <div className="intro_text">{tries + " / " + maxHealth}</div>;
+  }
+  //}
+}
+
+function StartButton(p) {
+  console.log(
+    " start button\n is game running ?",
+    isGameRunning,
+    "\n is alive ?",
+    p.isAlive
+  );
+  let restart = () => {
+    if (!isGameRunning && (p.isAlive == "dead" || p.isAlive == "alive_n_won")) {
+      p.setAlive("alive");
+      startGame();
+    }
+  };
+  return (
+    <div
+      className="start button clickableBtn"
+      style={{ display: isGameRunning ? "none" : "block" }}
+      onClick={() => {
+        restart();
+        isGameRunning = true;
+        p.startText(mysteryName);
+      }}
+    >
+      Start New Game
+    </div>
+  );
+}
+
+function Game() {
+  let [screenText, setScreenText] = React.useState(
+    "GUESS THE NAME OF\nA WORLD OF TANKS MAP"
+  );
+  let [keyboardTouched, setKeyboardTouched] = React.useState(false);
+  let [isAlive, setAlive] = React.useState("alive");
+
+  console.log(" game , is alive ", isAlive);
+  return (
+    <div className="game_screen">
+      <StartButton
+        startText={setScreenText}
+        isAlive={isAlive}
+        setAlive={setAlive}
+      />
+      <KeyboardScreen
+        settingText={setScreenText}
+        setKeyboardState={setKeyboardTouched}
+      />
+      <div className="intro_text">{screenText}</div>
+      <HealthScreen
+        keyboardState={keyboardTouched}
+        setKeyboardState={setKeyboardTouched}
+        setHealthState={setAlive}
+      />
+      <Logo rotate={isAlive} />
+    </div>
+  );
+}
+
+function Logo(p) {
+  return (
+    <>
+      <img
+        id="logo"
+        className={p.rotate}
+        src="data:image/png;base64,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"
+      />
+    </>
+  );
+}
+
+// const container = document.getElementById("myDiv");
+const container = document.getElementById("root");
+const root = ReactDOM.createRoot(container);
+root.render(<Game />);
